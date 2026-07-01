@@ -1,0 +1,60 @@
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser]       = useState(() => {
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
+  });
+  const [loading, setLoading] = useState(false);
+
+  const login = useCallback(async (email, password) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user',  JSON.stringify(data.user));
+      setUser(data.user);
+      toast.success(`Welcome back, ${data.user.name}!`);
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(async (payload) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/register', payload);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user',  JSON.stringify(data.user));
+      setUser(data.user);
+      toast.success('Account created successfully!');
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    toast.success('Logged out successfully');
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+};
