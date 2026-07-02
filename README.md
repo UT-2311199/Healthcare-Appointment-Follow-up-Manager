@@ -222,7 +222,7 @@ cd backend
 # Deploy to Render with environment variables configured
 ```
 
-**Live Demo**: https://healthcare-appointment-follow-up-ma.vercel.app/login
+**Live Demo**: https://healthcare-appointment-follow-up-ma.vercel.app/
 
 ---
 
